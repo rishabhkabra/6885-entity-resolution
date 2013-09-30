@@ -47,7 +47,6 @@ def create_feature(l, f):
         feature.append(1 if wre.search(l['website']).group() == wre.search(f['website']).group() else 0)
     else:
         feature.append(0)
-    #print feature
     return feature
 
 def create_feature_set(locu, fs, train = True):
@@ -58,7 +57,7 @@ def create_feature_set(locu, fs, train = True):
             feature = create_feature(l,f)
             x.append(feature)
             if train:
-                y.append(1 if (l['id'],f['id']) in matches_train else -1)
+                y.append(1 if (l['id'],f['id']) in matches_train else -1) 
     return (x, y) if train else x
 
 x,y = create_feature_set(locu_train, fs_train)
