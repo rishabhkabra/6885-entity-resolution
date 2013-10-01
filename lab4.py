@@ -39,6 +39,7 @@ with open('matches_train_hard.csv') as f:
     matches_train = {(locu_id, fs_id):1 for (locu_id, fs_id) in matches_train}
 
 wre = re.compile("\.[^\.]*\.[^\/]*")
+num = re.compile("\d+")
 
 def create_feature(l, f):
     feature = []
@@ -74,6 +75,21 @@ def create_feature(l, f):
         feature.append(1)
     else:
         feature.append(-1)
+    # check addresses
+    # TODO: replace address abbreviations. Think if first part of it is exactly same.                                                                                             
+    laddr = "".join(re.findall(re.compile(r'\b[A-Za-z]'), l['street_address']))
+    faddr = "".join(re.findall(re.compile(r'\b[A-Za-z]'), f['street_address']))
+    feature.append(1 - (edit_distance(laddr, faddr) / max(len(laddr), len(faddr), 1)))
+    #check first numerical value in address
+    if (l['street_address'] is None or f['street_address'] is None):
+      feature.append[0]
+    else:
+      lnum = num.search(l['street_address'])
+      fnum = num.search(f['street_address'])
+      if (lnum and fnum):
+        feature.append(1 if lnum.group() == fnum.group() else -1)
+      else:
+        feature.append(0)
     return feature
 
 def create_feature_set(locu, fs, matches = {}):
