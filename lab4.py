@@ -44,7 +44,9 @@ num = re.compile("\d")
 def create_feature(l, f):
     feature = []
     #check names
-    feature.append(edit_distance(l['name'],f['name']))
+    edist = edit_distance(l['name'],f['name'])
+    edist /= max(1, len(l['name']), len(f['name']))
+    feature.append(edist)
     #check latitude and longitude
     if (not(l['latitude'] and f['latitude'])):
       feature.append(0)
