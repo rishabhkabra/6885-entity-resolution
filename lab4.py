@@ -43,9 +43,23 @@ wre = re.compile("\.[^\.]*\.[^\/]*")
 def create_feature(l, f):
     feature = []
     #check names
-    feature.append(edit_distance(l['name'],f['name'])  / max(len(l['name']), len(f['name']), 1))
+    feature.append(edit_distance(l['name'],f['name']))
+    #check latitude and longitude
+    if (not(l['latitude'] and f['latitude'])):
+      feature.append(0)
+    else:
+      lat = abs(l['latitude'] -  f['latitude'])
+      feature.append(1 if lat < 0.1 else -1)
+    if (not(l['longitude'] and f['longitude'])):
+      feature.append(0)
+    else:
+      lng = abs(l['longitude'] -  f['longitude'])
+      feature.append(1 if lng < 0.1 else -1)
     #check postal codes
-    feature.append(1 if (l['postal_code']==f['postal_code'])  else 0)
+    if (not(l['postal_code'] and f['postal_code'])):
+      feature.append(0)
+    else:
+      feature.append(1 if (l['postal_code']==f['postal_code'])  else -1)
     #check websites
     lweb = wre.search(l['website'])
     fweb = wre.search(f['website'])
@@ -64,7 +78,7 @@ def create_feature(l, f):
     # TODO: replace address abbreviations. Think if first part of it is exactly same.                                                                                             
     laddr = re.findall(re.compile(r'\b\w[\D]'), l['street_address']).lowercase()
     faddr = re.findall(re.compile(r'\b\w[\D]'), f['street_address']).lowercase()
-    feature.append(1 - (edit_distance(laddr, faddr) / max(len(laddr), len(faddr), 1)))
+    feature.append(1 - (edit_distance(laddr, faddr) / max(len(l['street_address']), len(f['street_address']), 1)))
     return feature
 
 def create_feature_set(locu, fs, matches = {}):
@@ -73,7 +87,8 @@ def create_feature_set(locu, fs, matches = {}):
     for l in locu:
         for f in fs:
             feature = create_feature(l,f)
-            x.append(feature)
+            if feature:
+              x.append(feature)
 	    if l['id'] in matches and matches[l['id']] == f['id']:
             	y.append(1)
             else:
