@@ -77,9 +77,9 @@ def create_feature(l, f):
         feature.append(-1)
     # check addresses
     # TODO: replace address abbreviations. Think if first part of it is exactly same.                                                                                             
-    laddr = "".join(re.findall(re.compile(r'\b[A-Za-z]'), l['street_address']))
-    faddr = "".join(re.findall(re.compile(r'\b[A-Za-z]'), f['street_address']))
-    feature.append(1 - (edit_distance(laddr, faddr) / max(len(laddr), len(faddr), 1)))
+#     laddr = "".join(re.findall(re.compile(r'\b[A-Za-z]'), l['street_address']))
+#     faddr = "".join(re.findall(re.compile(r'\b[A-Za-z]'), f['street_address']))
+#     feature.append(1 - (edit_distance(laddr, faddr) / max(len(laddr), len(faddr), 1)))
     #check first numerical value in address
     if (l['street_address'] is None or f['street_address'] is None):
       feature.append[0]
