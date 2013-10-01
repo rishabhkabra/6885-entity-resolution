@@ -75,4 +75,16 @@ with open('foursquare_test_hard.json') as f:
     fs_test = json.loads(f.read())
 
 x_test = create_feature_set(locu_test, fs_test)[0]
-print clf.predict(x)
+y_test = clf.predict(x_test)
+#print len(y_test)
+#print len([i for i in y if i == 1])
+
+matches_file = open('matches_test.csv', 'w')
+yindex = 0
+for l in locu_test:
+    for f in fs_test:
+        if y_test[yindex] == 1:
+            output = '{0},{1}\n'.format(l['id'],f['id'])
+            matches_file.write(output)
+        yindex += 1
+matches_file.close()
