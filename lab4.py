@@ -36,7 +36,7 @@ with open('foursquare_train_hard.json') as f:
 with open('matches_train_hard.csv') as f:
     lines = f.readlines()[1:] #locu_id, foursquare_id
     matches_train = [string.split(line.strip(), ',') for line in lines]
-    matches_train = {locu_id: fs_id for (locu_id, fs_id) in matches_train}
+    matches_train = {(locu_id, fs_id):1 for (locu_id, fs_id) in matches_train}
 
 wre = re.compile("\.[^\.]*\.[^\/]*")
 
@@ -84,7 +84,7 @@ def create_feature_set(locu, fs, matches = {}):
             feature = create_feature(l,f)
             if feature:
               x.append(feature)
-	    if l['id'] in matches and matches[l['id']] == f['id']:
+	    if (l['id'],f['id']) in matches:
             	y.append(1)
             else:
                 y.append(-1)
