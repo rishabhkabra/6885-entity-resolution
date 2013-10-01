@@ -34,8 +34,9 @@ with open('foursquare_train_hard.json') as f:
 
 with open('matches_train_hard.csv') as f:
     matches_train = f.readlines()[1:] #locu_id, foursquare_id
-    matches_train = [string.split(i, ',') for i in matches_train]
+    matches_train = [string.split(i.strip(), ',') for i in matches_train]
     matches_train = { (locu_id, fs_id) : 1 for (locu_id, fs_id) in matches_train}
+
 
 wre = re.compile("\.[^\.]*\.[^\/]*")
 
@@ -61,6 +62,7 @@ def create_feature_set(locu, fs, train = True):
     return (x, y) if train else x
 
 x,y = create_feature_set(locu_train, fs_train)
+#print y[:10]
 clf = svm.SVC()
 clf.fit(x,y)
 
@@ -71,4 +73,4 @@ with open('foursquare_test_hard.json') as f:
     fs_test = json.loads(f.read())
 
 x_test = create_features(locu_test, fs_test, False)
-print clf.predict(x)
+print clf.predict(x_test)
