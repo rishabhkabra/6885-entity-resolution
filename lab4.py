@@ -83,7 +83,10 @@ def create_feature(l, f):
     else:
       lnum = num.search(l['street_address'])
       fnum = num.search(f['street_address'])
-      feature.append(1 if lnum.group() == fnum.group() else -1)
+      if (lnum and fnum):
+        feature.append(1 if lnum.group() == fnum.group() else -1)
+      else:
+        feature.append(0)
     return feature
 
 def create_feature_set(locu, fs, matches = {}):
