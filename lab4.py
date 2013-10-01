@@ -4,7 +4,8 @@ import re
 from sklearn import svm
 
 def edit_distance(first, second):
-    """Find the Levenshtein distance between two strings."""
+    """Find the Levenshtein distance between two strings.
+    Original method written by Stavros Korokithakis."""
     if len(first) > len(second):
         first, second = second, first
     if len(second) == 0:
@@ -41,14 +42,24 @@ wre = re.compile("\.[^\.]*\.[^\/]*")
 
 def create_feature(l, f):
     feature = []
+    #check names
     feature.append(edit_distance(l['name'],f['name']))
+    #check postal codes
     feature.append(1 if (l['postal_code']==f['postal_code'])  else 0)
-    x = wre.search(l['website'])
-    y = wre.search(f['website'])
-    if (x is not None and y  is not None):
-      feature.append(1 if x.group() == y.group() else 0)
+    #check websites
+    lweb = wre.search(l['website'])
+    fweb = wre.search(f['website'])
+    if (lweb is not None and fweb is not None):
+      feature.append(1 if lweb.group() == fweb.group() else -1)
     else:
       feature.append(0)
+    #check phones
+    if (not(l['phone'] and f['phone'])):
+        feature.append(0)
+    elif re.sub(r"\D", "", l['phone']) == re.sub(r"\D", "", f['phone']):
+        feature.append(1)
+    else:
+        feature.append(-1)
     return feature
 
 def create_feature_set(locu, fs, matches = {}):
