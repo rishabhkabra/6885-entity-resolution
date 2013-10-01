@@ -4,7 +4,8 @@ import re
 from sklearn import svm
 
 def edit_distance(first, second):
-    """Find the Levenshtein distance between two strings."""
+    """Find the Levenshtein distance between two strings.
+    Original method written by Stavros Korokithakis."""
     if len(first) > len(second):
         first, second = second, first
     if len(second) == 0:
@@ -35,24 +36,35 @@ with open('foursquare_train_hard.json') as f:
 with open('matches_train_hard.csv') as f:
     lines = f.readlines()[1:] #locu_id, foursquare_id
     matches_train = [string.split(line.strip(), ',') for line in lines]
-    matches_train = {locu_id: fs_id for (locu_id, fs_id) in matches_train}
+    matches_train = {(locu_id,fs_id):1 for (locu_id, fs_id) in matches_train}
 
 wre = re.compile("\.[^\.]*\.[^\/]*")
 
 def create_feature(l, f):
     feature = []
-    feature.append(edit_distance(l['name'],f['name']) / max(len(l['name']), len(f['name']), 1))
+    #check names
+    feature.append(edit_distance(l['name'],f['name'])  / max(len(l['name']), len(f['name']), 1))
+    #check postal codes
     feature.append(1 if (l['postal_code']==f['postal_code'])  else 0)
-    #TODO: replace address abbreviations. Think if first part of it is exactly same.
-    laddr = l['street_address']
-    faddr = f['street_address']
-    feature.append(edit_distance(laddr, faddr) / max(len(laddr), len(faddr), 1))
-    x = wre.search(l['website'])
-    y = wre.search(f['website'])
-    if (x is not None and y  is not None):
-      feature.append(1 if x.group() == y.group() else -1)
+    #check websites
+    lweb = wre.search(l['website'])
+    fweb = wre.search(f['website'])
+    if (lweb is not None and fweb is not None):
+      feature.append(1 if lweb.group() == fweb.group() else -1)
     else:
       feature.append(0)
+    #check phones
+    if (not(l['phone'] and f['phone'])):
+        feature.append(0)
+    elif re.sub(r"\D", "", l['phone']) == re.sub(r"\D", "", f['phone']):
+        feature.append(1)
+    else:
+        feature.append(-1)
+    # check addresses
+    # TODO: replace address abbreviations. Think if first part of it is exactly same.                                                                                             
+    laddr = re.findall(re.compile(r'\b\w[\D]'), l['street_address']).lowercase()
+    faddr = re.findall(re.compile(r'\b\w[\D]'), f['street_address']).lowercase()
+    feature.append(1 - (edit_distance(laddr, faddr) / max(len(laddr), len(faddr), 1)))
     return feature
 
 def create_feature_set(locu, fs, matches = {}):
@@ -68,8 +80,10 @@ def create_feature_set(locu, fs, matches = {}):
                 y.append(-1)
     return (x, y)
 
+print "making feature vectors for training data..."
 x,y = create_feature_set(locu_train, fs_train, matches_train)
 clf = svm.SVC()
+print "fitting training data ..."
 clf.fit(x,y)
 
 with open('locu_test_hard.json') as f:
@@ -78,7 +92,9 @@ with open('locu_test_hard.json') as f:
 with open('foursquare_test_hard.json') as f:
     fs_test = json.loads(f.read())
 
+print "making feature vectors for test data..."
 x_test = create_feature_set(locu_test, fs_test)[0]
+print "predicting testing data..."
 y_test = clf.predict(x_test)
 
 matches_file = open('matches_test.csv', 'w')
