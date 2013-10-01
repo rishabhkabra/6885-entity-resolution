@@ -44,8 +44,22 @@ def create_feature(l, f):
     feature = []
     #check names
     feature.append(edit_distance(l['name'],f['name']))
+    #check latitude and longitude
+    if (not(l['latitude'] and f['latitude'])):
+      feature.append(0)
+    else:
+      lat = abs(l['latitude'] -  f['latitude'])
+      feature.append(1 if lat < 0.1 else -1)
+    if (not(l['longitude'] and f['longitude'])):
+      feature.append(0)
+    else:
+      lng = abs(l['longitude'] -  f['longitude'])
+      feature.append(1 if lng < 0.1 else -1)
     #check postal codes
-    feature.append(1 if (l['postal_code']==f['postal_code'])  else 0)
+    if (not(l['postal_code'] and f['postal_code'])):
+      feature.append(0)
+    else:
+      feature.append(1 if (l['postal_code']==f['postal_code'])  else -1)
     #check websites
     lweb = wre.search(l['website'])
     fweb = wre.search(f['website'])
@@ -68,7 +82,8 @@ def create_feature_set(locu, fs, matches = {}):
     for l in locu:
         for f in fs:
             feature = create_feature(l,f)
-            x.append(feature)
+            if feature:
+              x.append(feature)
 	    if l['id'] in matches and matches[l['id']] == f['id']:
             	y.append(1)
             else:
