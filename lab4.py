@@ -39,6 +39,7 @@ with open('matches_train_hard.csv') as f:
     matches_train = {locu_id: fs_id for (locu_id, fs_id) in matches_train}
 
 wre = re.compile("\.[^\.]*\.[^\/]*")
+num = re.compile("\d")
 
 def create_feature(l, f):
     feature = []
@@ -74,6 +75,13 @@ def create_feature(l, f):
         feature.append(1)
     else:
         feature.append(-1)
+    #check first numerical value in address
+    if (l['street_address'] is None or f['street_address'] is None):
+      feature.append[0]
+    else:
+      lnum = num.search(l['street_address'])
+      fnum = num.search(f['street_address'])
+      feature.append(1 if lnum.group() == fnum.group() else -1)
     return feature
 
 def create_feature_set(locu, fs, matches = {}):
