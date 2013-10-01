@@ -33,9 +33,9 @@ with open('foursquare_train_hard.json') as f:
     fs_train = json.loads(f.read())
 
 with open('matches_train_hard.csv') as f:
-    matches_train = f.readlines()[1:] #locu_id, foursquare_id
-    matches_train = [string.split(i, ',') for i in matches_train]
-    matches_train = { (locu_id, fs_id) : 1 for (locu_id, fs_id) in matches_train}
+    lines = f.readlines()[1:] #locu_id, foursquare_id
+    matches_train = [string.split(line.strip(), ',') for line in lines]
+    matches_train = {locu_id: fs_id for (locu_id, fs_id) in matches_train}
 
 wre = re.compile("\.[^\.]*\.[^\/]*")
 
@@ -51,18 +51,20 @@ def create_feature(l, f):
       feature.append(0)
     return feature
 
-def create_feature_set(locu, fs, train = True):
+def create_feature_set(locu, fs, matches = {}):
     x = []
     y = []
     for l in locu:
         for f in fs:
             feature = create_feature(l,f)
             x.append(feature)
-	    if train:
-            	y.append(1 if (l['id'],f['id']) in matches_train else -1) 
-    return (x, y) if train else x
+	    if l['id'] in matches and matches[l['id']] == f['id']:
+            	y.append(1)
+            else:
+                y.append(-1)
+    return (x, y)
 
-x,y = create_feature_set(locu_train, fs_train)
+x,y = create_feature_set(locu_train, fs_train, matches_train)
 clf = svm.SVC()
 clf.fit(x,y)
 
@@ -72,5 +74,5 @@ with open('locu_test_hard.json') as f:
 with open('foursquare_test_hard.json') as f:
     fs_test = json.loads(f.read())
 
-x_test = create_features(locu_test, fs_test, False)
+x_test = create_feature_set(locu_test, fs_test)[0]
 print clf.predict(x)
