@@ -43,8 +43,12 @@ def create_feature(l, f):
     feature = []
     feature.append(edit_distance(l['name'],f['name']))
     feature.append(1 if (l['postal_code']==f['postal_code'])  else 0)
-    feature.append(1 if wre.search(l['website']).group() == wre.search(f['website']).group() else 0)
-    print feature
+    x = wre.search(l['website'])
+    y = wre.search(f['website'])
+    if (x is not None and y  is not None):
+      feature.append(1 if x.group() == y.group() else 0)
+    else:
+      feature.append(0)
     return feature
 
 def create_feature_set(locu, fs, train = True):
