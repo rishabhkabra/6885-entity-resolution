@@ -41,12 +41,16 @@ wre = re.compile("\.[^\.]*\.[^\/]*")
 
 def create_feature(l, f):
     feature = []
-    feature.append(edit_distance(l['name'],f['name']))
+    feature.append(edit_distance(l['name'],f['name']) / max(len(l['name']), len(f['name']), 1))
     feature.append(1 if (l['postal_code']==f['postal_code'])  else 0)
+    #TODO: replace address abbreviations. Think if first part of it is exactly same.
+    laddr = l['street_address']
+    faddr = f['street_address']
+    feature.append(edit_distance(laddr, faddr) / max(len(laddr), len(faddr), 1))
     x = wre.search(l['website'])
     y = wre.search(f['website'])
     if (x is not None and y  is not None):
-      feature.append(1 if x.group() == y.group() else 0)
+      feature.append(1 if x.group() == y.group() else -1)
     else:
       feature.append(0)
     return feature
@@ -76,8 +80,6 @@ with open('foursquare_test_hard.json') as f:
 
 x_test = create_feature_set(locu_test, fs_test)[0]
 y_test = clf.predict(x_test)
-#print len(y_test)
-#print len([i for i in y if i == 1])
 
 matches_file = open('matches_test.csv', 'w')
 yindex = 0
