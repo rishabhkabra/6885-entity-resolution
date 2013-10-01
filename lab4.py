@@ -78,9 +78,9 @@ def create_feature(l, f):
         feature.append(-1)
     # check addresses
     # TODO: replace address abbreviations. Think if first part of it is exactly same.                                                                                             
-    laddr = re.findall(re.compile(r'\b\w[\D]'), l['street_address']).lowercase()
-    faddr = re.findall(re.compile(r'\b\w[\D]'), f['street_address']).lowercase()
-    feature.append(1 - (edit_distance(laddr, faddr) / max(len(l['street_address']), len(f['street_address']), 1)))
+    laddr = "".join(re.findall(re.compile(r'\b[A-Za-z]'), l['street_address']))
+    faddr = "".join(re.findall(re.compile(r'\b[A-Za-z]'), f['street_address']))
+    feature.append(1 - (edit_distance(laddr, faddr) / max(len(laddr), len(faddr), 1)))
     return feature
 
 def create_feature_set(locu, fs, matches = {}):
@@ -97,10 +97,8 @@ def create_feature_set(locu, fs, matches = {}):
                 y.append(-1)
     return (x, y)
 
-print "making feature vectors for training data..."
 x,y = create_feature_set(locu_train, fs_train, matches_train)
 clf = svm.SVC()
-print "fitting training data ..."
 clf.fit(x,y)
 
 with open('locu_test_hard.json') as f:
@@ -109,9 +107,7 @@ with open('locu_test_hard.json') as f:
 with open('foursquare_test_hard.json') as f:
     fs_test = json.loads(f.read())
 
-print "making feature vectors for test data..."
 x_test = create_feature_set(locu_test, fs_test)[0]
-print "predicting testing data..."
 y_test = clf.predict(x_test)
 
 matches_file = open('matches_test.csv', 'w')
